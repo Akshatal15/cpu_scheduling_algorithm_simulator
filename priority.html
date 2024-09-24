@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Priority Scheduling Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: rgb(141,63,251);
+    background: radial-gradient(circle, rgba(141,63,251,1) 0%, rgba(252,70,104,1) 100%);
+            color: #f4f4f9; /* Light text color */
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        header {
+           
+            color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        canvas {
+            border: 1px solid #f6f5f5;
+            margin-top: 20px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 200px;
+            padding: 5px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #0a0a0a;
+            color: #f4f4f9;
+        }
+        button {
+            width: 150px; /* Fixed width */
+            height: 40px; /* Fixed height */
+            font-size: 16px;
+            background-color: #121212; /* Dark button background */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555; /* Slightly lighter on hover */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Priority Scheduling Simulation</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Simulate Priority Scheduling</h2>
+            <label for="processes">Processes (comma separated):</label>
+            <input type="text" id="processes" value="P1,P2,P3"><br><br>
+            <label for="burstTimes">Burst Times (comma separated):</label>
+            <input type="text" id="burstTimes" value="10,5,8"><br><br>
+            <label for="priorities">Priorities (comma separated):</label>
+            <input type="text" id="priorities" value="3,1,2"><br><br>
+            <button onclick="startSimulation()">Start Simulation</button>
+            <canvas id="simulationCanvas" width="800" height="200"></canvas>
+        </section>
+    </main>
+    <script>
+        function startSimulation() {
+            const processes = document.getElementById('processes').value.split(',');
+            const burstTimes = document.getElementById('burstTimes').value.split(',').map(Number);
+            const priorities = document.getElementById('priorities').value.split(',').map(Number);
+
+            // Validate inputs
+            if (processes.length !== burstTimes.length || processes.length !== priorities.length) {
+                alert("Number of processes, burst times, and priorities must match.");
+                return;
+            }
+
+            const n = processes.length;
+            let currentTime = 0;
+
+            const canvas = document.getElementById('simulationCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const colors = ['#2E8B57', '#1E90FF', '#8A2BE2', '#A52A2A', '#5F9EA0']; // Darker aesthetic colors
+
+            // Create an array of processes with their burst times and priorities
+            const jobs = [];
+            for (let i = 0; i < n; i++) {
+                jobs.push({ name: processes[i], burstTime: burstTimes[i], priority: priorities[i], index: i });
+            }
+
+            // Sort jobs by priority (lower number means higher priority)
+            jobs.sort((a, b) => a.priority - b.priority);
+
+            function drawProcess(index, startTime, executionTime) {
+                ctx.fillStyle = colors[index % colors.length];
+                ctx.fillRect(startTime * 10, 50, executionTime * 10, 50);
+                ctx.fillStyle = '#f4f4f9'; // Light text color for contrast
+                ctx.fillText(processes[index], (startTime + executionTime / 2) * 10 - 10, 45);
+
+                // Draw start time
+                ctx.fillText(startTime, startTime * 10, 120);
+                // Draw end time
+                ctx.fillText(startTime + executionTime, (startTime + executionTime) * 10, 120);
+            }
+
+            function simulate(index) {
+                if (index < n) {
+                    const job = jobs[index];
+                    drawProcess(job.index, currentTime, job.burstTime);
+
+                    // Update time for the next process
+                    currentTime += job.burstTime;
+
+                    // Continue with the next process after a delay
+                    setTimeout(() => simulate(index + 1), 500);
+                }
+            }
+
+            // Start the simulation with the first job
+            simulate(0);
+        }
+    </script>
+</body>
+</html>

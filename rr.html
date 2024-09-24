@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Round Robin Scheduling Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: rgb(141,63,251);
+    background: radial-gradient(circle, rgba(141,63,251,1) 0%, rgba(252,70,104,1) 100%);
+            color: #f4f4f9; /* Light text color */
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        header {
+            
+            color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        canvas {
+            border: 1px solid #f8f5f5;
+            margin-top: 20px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 200px;
+            padding: 5px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #070707;
+            color: #f4f4f9;
+        }
+        button {
+            width: 150px; /* Fixed width */
+            height: 40px; /* Fixed height */
+            font-size: 16px;
+            background-color: #090909; /* Dark button background */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555; /* Slightly lighter on hover */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Round Robin Scheduling Simulation</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Simulate Round Robin Scheduling</h2>
+            <label for="quantum">Time Quantum:</label>
+            <input type="number" id="quantum" min="1" value="4"><br><br>
+            <label for="processes">Processes (comma separated):</label>
+            <input type="text" id="processes" value="P1,P2,P3"><br><br>
+            <label for="burstTimes">Burst Times (comma separated):</label>
+            <input type="text" id="burstTimes" value="24,3,3"><br><br>
+            <button onclick="startSimulation()">Start Simulation</button>
+            <canvas id="simulationCanvas" width="800" height="200"></canvas>
+        </section>
+    </main>
+    <script>
+        function startSimulation() {
+            const quantum = parseInt(document.getElementById('quantum').value);
+            const processes = document.getElementById('processes').value.split(',');
+            const burstTimes = document.getElementById('burstTimes').value.split(',').map(Number);
+
+            // Validate inputs
+            if (processes.length !== burstTimes.length) {
+                alert("Number of processes and burst times must match.");
+                return;
+            }
+
+            const n = processes.length;
+            let remainingBurstTime = [...burstTimes];
+            let currentTime = 0;
+            let queue = [];
+            for (let i = 0; i < n; i++) {
+                queue.push(i);
+            }
+
+            const canvas = document.getElementById('simulationCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const colors = ['#2E8B57', '#1E90FF', '#8A2BE2', '#A52A2A', '#5F9EA0']; // Darker aesthetic colors
+
+            function drawProcess(index, startTime, executionTime) {
+                ctx.fillStyle = colors[index % colors.length];
+                ctx.fillRect(startTime * 10, 50, executionTime * 10, 50);
+                ctx.fillStyle = '#f4f4f9'; // Light text color for contrast
+                ctx.fillText(processes[index], (startTime + executionTime / 2) * 10 - 10, 45);
+                
+                // Draw start time
+                ctx.fillText(startTime, startTime * 10, 120);
+                // Draw end time
+                ctx.fillText(startTime + executionTime, (startTime + executionTime) * 10, 120);
+            }
+
+            function simulate() {
+                if (queue.length > 0) {
+                    let index = queue.shift();
+
+                    // Calculate execution time
+                    let executionTime = Math.min(remainingBurstTime[index], quantum);
+
+                    // Draw process at the correct time
+                    drawProcess(index, currentTime, executionTime);
+
+                    // Update time and remaining burst time
+                    currentTime += executionTime;
+                    remainingBurstTime[index] -= executionTime;
+
+                    // Check if the process is still unfinished
+                    if (remainingBurstTime[index] > 0) {
+                        queue.push(index);
+                    }
+
+                    // Continue simulation after delay
+                    setTimeout(simulate, 500); // Delay for animation
+                }
+            }
+
+            simulate();
+        }
+    </script>
+</body>
+</html>
